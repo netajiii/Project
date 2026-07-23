@@ -1,4 +1,4 @@
-import streamlit as st and using ChatOllama
+import streamlit as st
 import os
 import dotenv
 import uuid
@@ -88,4 +88,3 @@ if prompt := st.chat_input("Ask anything..."):
             st.write_stream(stream_llm_rag_response(llm_stream, messages))
         else:
             st.write_stream(stream_llm_response(llm_stream, messages))
-    
