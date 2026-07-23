@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st and using ChatOllama
 import os
 import dotenv
 import uuid
