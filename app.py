@@ -7,7 +7,7 @@ if os.name == 'posix':
     import sys
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from langchain.schema import HumanMessage, AIMessage
 from rag_methods import (
     load_doc_to_db,
@@ -20,14 +20,14 @@ dotenv.load_dotenv()
 os.environ["USER_AGENT"] = "myagent"
 
 st.set_page_config(
-    page_title="Local RAG LLM App",
+    page_title="Groq RAG LLM App",
     page_icon="📚",
     layout="centered",
     initial_sidebar_state="expanded"
 )
 
 # --- Header ---
-st.html("""<h2 style="text-align: center;">📚🔍 Local RAG Chatbot (Ollama) 🤖💬</h2>""")
+st.html("""<h2 style="text-align: center;">📚🔍 Groq RAG Chatbot 🤖💬</h2>""")
 
 # --- Initial Setup ---
 if "session_id" not in st.session_state:
@@ -41,7 +41,9 @@ if "messages" not in st.session_state:
 
 # --- Sidebar ---
 with st.sidebar:
-    st.header("Settings")
+    st.header("Groq Settings")
+    groq_api_key = st.text_input("Groq API Key", type="password", key="groq_api_key")
+    
     st.toggle("Use RAG (Document Search)", value=True, key="use_rag")
     
     st.divider()
@@ -77,14 +79,18 @@ if prompt := st.chat_input("Ask anything..."):
         st.markdown(prompt)
     
     with st.chat_message("assistant"):
-        llm_stream = ChatOllama(
-            model="llama3.2",
-            temperature=0.7,
-            streaming=True,
-        )
-        messages = [HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"]) for m in st.session_state.messages]
-        
-        if st.session_state.use_rag and "vector_db" in st.session_state:
-            st.write_stream(stream_llm_rag_response(llm_stream, messages))
+        if not groq_api_key:
+            st.warning("Please enter Groq API Key in sidebar")
         else:
-            st.write_stream(stream_llm_response(llm_stream, messages))
+            llm_stream = ChatGroq(
+                api_key=groq_api_key,
+                model_name="llama3-70b-8192",
+                temperature=0.7,
+                streaming=True,
+            )
+            messages = [HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"]) for m in st.session_state.messages]
+            
+            if st.session_state.use_rag and "vector_db" in st.session_state:
+                st.write_stream(stream_llm_rag_response(llm_stream, messages))
+            else:
+                st.write_stream(stream_llm_response(llm_stream, messages))
