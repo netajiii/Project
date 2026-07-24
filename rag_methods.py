@@ -9,7 +9,8 @@ from langchain_community.document_loaders import (
 )
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_ollama import OllamaLLM, OllamaEmbeddings
+from langchain_groq import ChatGroq
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -27,6 +28,7 @@ def stream_llm_response(llm_stream, messages):
 
 # --- Indexing Phase ---
 def load_doc_to_db():
+    # (same as before - keep your current if it works)
     if "rag_docs" in st.session_state and st.session_state.rag_docs:
         docs = []
         for doc_file in st.session_state.rag_docs:
@@ -60,6 +62,7 @@ def load_doc_to_db():
             st.toast(f"Document(s) loaded successfully.", icon="✅")
 
 def load_url_to_db():
+    # (same as before)
     if "rag_url" in st.session_state and st.session_state.rag_url:
         url = st.session_state.rag_url
         docs = []
@@ -78,10 +81,10 @@ def load_url_to_db():
                 st.error("Maximum number of documents reached (10).")
 
 def initialize_vector_db(docs):
-    embeddings = OllamaEmbeddings(model="llama3.2")
+    embedding = OpenAIEmbeddings(api_key=st.session_state.openai_api_key)  # Groq uses OpenAI compatible embeddings or you can use others
     vector_db = Chroma.from_documents(
         documents=docs,
-        embedding=embeddings,
+        embedding=embedding,
         collection_name=f"{str(time()).replace('.', '')[:14]}_" + st.session_state.get('session_id', 'default'),
     )
     return vector_db
