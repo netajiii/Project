@@ -76,11 +76,13 @@ def load_url_to_db():
             else:
                 st.error("Maximum number of documents reached (10).")
 
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 def initialize_vector_db(docs):
-    embedding = OpenAIEmbeddings(api_key=st.session_state.get("openai_api_key"))
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vector_db = Chroma.from_documents(
         documents=docs,
-        embedding=embedding,
+        embedding=embeddings,
         collection_name=f"{str(time()).replace('.', '')[:14]}_" + st.session_state.get('session_id', 'default'),
     )
     return vector_db
